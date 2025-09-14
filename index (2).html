@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chef PP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #ff6347; /* Tomato */
+            --secondary-color: #ffca28; /* Amber */
+            --bg-color: #fff8f0;
+            --text-color: #333;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 1rem;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Blurred Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            filter: blur(100px);
+            z-index: -2;
+        }
+
+        .background-blobs div {
+            position: fixed;
+            border-radius: 50%;
+            opacity: 0.5;
+            z-index: -1;
+            animation: float 20s infinite ease-in-out alternate;
+        }
+
+        .blob1 { width: 300px; height: 300px; top: 10%; left: 5%; background: var(--primary-color); animation-duration: 25s; }
+        .blob2 { width: 200px; height: 200px; top: 60%; left: 80%; background: var(--secondary-color); animation-duration: 18s; }
+        .blob3 { width: 150px; height: 150px; top: 30%; left: 50%; background: #47ffb8; animation-duration: 30s; }
+
+
+        @keyframes float {
+            from { transform: translateY(0px) translateX(0px) rotate(0deg); }
+            to { transform: translateY(-50px) translateX(50px) rotate(180deg); }
+        }
+
+        /* Main Container & Cards */
+        .container {
+            width: 100%;
+            max-width: 700px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: var(--shadow);
+            text-align: center;
+            position: relative;
+        }
+
+        .sticker {
+            position: absolute;
+            width: 80px;
+            height: auto;
+            pointer-events: none;
+        }
+        .sticker-1 { top: -30px; left: -20px; transform: rotate(-15deg); }
+        .sticker-2 { bottom: -25px; right: -25px; transform: rotate(10deg); }
+
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        p {
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            resize: vertical;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 99, 71, 0.2);
+        }
+
+        button {
+            background: linear-gradient(45deg, var(--primary-color), #ff7f50);
+            color: #fff;
+            border: none;
+            padding: 0.8rem 2.5rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 99, 71, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 99, 71, 0.4);
+        }
+
+        .result-box {
+            margin-top: 2rem;
+            text-align: left;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            display: none; /* Hide by default */
+        }
+
+        .result-box h2, .result-box h3 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-box ul { list-style-type: '🍳'; padding-left: 1.5rem; }
+        .result-box li { padding: 0.5rem 0; }
+        .review { font-style: italic; color: #555; background-color: #fff8e1; padding: 1rem; border-left: 4px solid var(--secondary-color); border-radius: 4px; }
+
+        #save-menu-button {
+            background: var(--secondary-color);
+            margin-top: 1rem;
+            display: block;
+            margin-left: auto;
+        }
+         #save-menu-button:hover {
+            box-shadow: 0 6px 20px rgba(255, 202, 40, 0.4);
+        }
+
+        #history-container {
+            margin-top: 1.5rem;
+        }
+
+        #history-container h2 {
+             color: var(--text-color);
+             font-size: 1.5rem;
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: #fff;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-align: left;
+        }
+        .history-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .history-item strong {
+            color: var(--primary-color);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body { padding: 0.5rem; }
+            .container { margin: 1rem auto; padding: 1rem; }
+            h1 { font-size: 1.8rem; }
+            p { font-size: 1rem; }
+            .sticker { display: none; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="background-blobs">
+        <div class="blob1"></div>
+        <div class="blob2"></div>
+        <div class="blob3"></div>
+    </div>
+
+    <div class="container">
+        <div class="sticker sticker-1">🍔</div>
+<div class="sticker sticker-2">🥑</div>
+
+
+        <h1>เชฟ AI ส่วนตัว 🧑‍🍳</h1>
+        <p>แค่บอกวัตถุดิบที่คุณมี แล้ว AI จะเนรมิตเมนูเด็ดให้เลย!</p>
+
+        <textarea id="ingredients-input" placeholder="ตัวอย่าง: ส้ม, น้ำเเข็ง วิธีทำ นำส้มปลอกเปลือกเเละคั้นเอาเเค่น้ำ เทใส่เเก้ว ใส่น้ำเเข็ง พร้อมทาน"></textarea>
+        <button id="generate-button">สร้างเมนูเลย!</button>
+
+        <div id="loading" style="display: none; margin-top: 1rem;">กำลังปรุงอาหาร... 🥣</div>
+
+        <div class="result-box" id="result-box">
+            <h2 id="dish-name"></h2>
+            <h3>วัตถุดิบที่ใช้</h3>
+            <ul id="ingredients-list"></ul>
+            <h3>รีวิวชวนหิว</h3>
+            <p id="customer-review" class="review"></p>
+            <button id="save-menu-button">💾 บันทึกเมนูนี้</button>
+        </div>
+
+        <div id="history-container" style="display: none;">
+             <h2>📖 เมนูที่เคยบันทึกไว้</h2>
+             <ul id="history-list" class="history-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        const ingredientsInput = document.getElementById('ingredients-input');
+        const generateButton = document.getElementById('generate-button');
+        const resultBox = document.getElementById('result-box');
+        const dishName = document.getElementById('dish-name');
+        const ingredientsList = document.getElementById('ingredients-list');
+        const customerReview = document.getElementById('customer-review');
+        const loading = document.getElementById('loading');
+        const saveMenuButton = document.getElementById('save-menu-button');
+        const historyContainer = document.getElementById('history-container');
+        const historyList = document.getElementById('history-list');
+
+        const apiUrl = 'https://pangpone300950.pythonanywhere.com/generate';
+
+        let currentMenuData = {};
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', loadSavedMenus);
+
+        generateButton.addEventListener('click', generateMenu);
+
+        saveMenuButton.addEventListener('click', () => {
+            saveMenu(currentMenuData);
+        });
+
+        // --- Functions ---
+        async function generateMenu() {
+            const ingredients = ingredientsInput.value.trim();
+            if (ingredients === '') {
+                alert('กรุณาป้อนวัตถุดิบก่อนนะครับ!');
+                return;
+            }
+
+            loading.style.display = 'block';
+            resultBox.style.display = 'none';
+            generateButton.disabled = true;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ingredients: ingredients })
+                });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                const data = await response.json();
+
+                // Store current data to be saved later
+                currentMenuData = data;
+
+                displayMenu(data);
+
+            } catch (error) {
+                console.error('เกิดข้อผิดพลาด:', error);
+                alert('ขออภัยครับ เกิดข้อผิดพลาดบางอย่าง ลองใหม่นะ');
+            } finally {
+                loading.style.display = 'none';
+                generateButton.disabled = false;
+            }
+        }
+
+        function displayMenu(data) {
+            dishName.textContent = data.dish_name;
+            customerReview.textContent = data.customer_review;
+
+            ingredientsList.innerHTML = ''; // Clear previous list
+            data.ingredients.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                ingredientsList.appendChild(li);
+            });
+
+            resultBox.style.display = 'block';
+        }
+
+        function saveMenu(menuData) {
+            if (!menuData || !menuData.dish_name) {
+                alert('ไม่มีข้อมูลเมนูให้บันทึก!');
+                return;
+            }
+
+            let savedMenus = JSON.parse(localStorage.getItem('savedMenus')) || [];
+
+            // Avoid duplicates
+            if (savedMenus.some(menu => menu.dish_name === menuData.dish_name)) {
+                alert('เมนูนี้ถูกบันทึกไว้แล้ว!');
+                return;
+            }
+
+            savedMenus.push(menuData);
+            localStorage.setItem('savedMenus', JSON.stringify(savedMenus));
+
+            alert(`เมนู "${menuData.dish_name}" ถูกบันทึกแล้ว!`);
+            loadSavedMenus(); // Refresh the list
+        }
+
+        function loadSavedMenus() {
+            let savedMenus = JSON.parse(localStorage.getItem('savedMenus')) || [];
+
+            if (savedMenus.length === 0) {
+                historyContainer.style.display = 'none';
+                return;
+            }
+
+            historyContainer.style.display = 'block';
+            historyList.innerHTML = ''; // Clear current list
+
+            savedMenus.forEach(menu => {
+                const item = document.createElement('li');
+                item.className = 'history-item';
+                item.innerHTML = `<strong>${menu.dish_name}</strong><br><small>วัตถุดิบ: ${menu.ingredients.join(', ')}</small>`;
+
+                // Add click event to show the saved menu details again
+                item.addEventListener('click', () => {
+                    displayMenu(menu);
+                    window.scrollTo(0, 0); // Scroll to top to see the result
+                });
+
+                historyList.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>
